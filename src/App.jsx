@@ -261,15 +261,20 @@ const T = {
 // ============================================================
 // MAIN APP
 // ============================================================
+// localStorage helpers
+const LS_KEY = "hw_";
+const load = (k, fallback) => { try { const v = localStorage.getItem(LS_KEY + k); return v !== null ? JSON.parse(v) : fallback; } catch { return fallback; } };
+const save = (k, v) => { try { localStorage.setItem(LS_KEY + k, JSON.stringify(v)); } catch {} };
+
 export default function App() {
-  const [view, setView] = useState("onboard");
-  const [persona, setPersona] = useState(null);
+  const [view, setView] = useState(() => load("persona", null) ? "journey" : "onboard");
+  const [persona, setPersona] = useState(() => load("persona", null));
   const [selDay, setSelDay] = useState(null);
-  const [done, setDone] = useState([]);
-  const [walls, setWalls] = useState({});
-  const [letter, setLetter] = useState("");
-  const [sealed, setSealed] = useState(false);
-  const [choices, setChoices] = useState({});
+  const [done, setDone] = useState(() => load("done", []));
+  const [walls, setWalls] = useState(() => load("walls", {}));
+  const [letter, setLetter] = useState(() => load("letter", ""));
+  const [sealed, setSealed] = useState(() => load("sealed", false));
+  const [choices, setChoices] = useState(() => load("choices", {}));
   const [share, setShare] = useState(null);
   const [xStudy, setXStudy] = useState(false);
   const [xDinner, setXDinner] = useState(false);
@@ -282,6 +287,14 @@ export default function App() {
   const [xScr, setXScr] = useState(true);
   const [postEaster, setPostEaster] = useState(false);
   const cvs = useRef(null);
+
+  // Persist to localStorage whenever key state changes
+  useEffect(() => { save("persona", persona); }, [persona]);
+  useEffect(() => { save("done", done); }, [done]);
+  useEffect(() => { save("walls", walls); }, [walls]);
+  useEffect(() => { save("letter", letter); }, [letter]);
+  useEffect(() => { save("sealed", sealed); }, [sealed]);
+  useEffect(() => { save("choices", choices); }, [choices]);
 
   const todayIdx = () => {
     const diff = Math.floor((new Date() - new Date(2026,2,29)) / 864e5);
@@ -298,7 +311,7 @@ export default function App() {
     return () => clearInterval(id);
   }, [ticking, timer]);
 
-  const reset = () => { setView("onboard"); setPersona(null); setSelDay(null); setDone([]); setChoices({}); setWalls({}); setLetter(""); setSealed(false); setXStudy(false); setXApol(false); setXDinner(false); setXGroup(false); setWallIn(""); setXScr(true); };
+  const reset = () => { setView("onboard"); setPersona(null); setSelDay(null); setDone([]); setChoices({}); setWalls({}); setLetter(""); setSealed(false); setXStudy(false); setXApol(false); setXDinner(false); setXGroup(false); setWallIn(""); setXScr(true); try { Object.keys(localStorage).filter(k=>k.startsWith(LS_KEY)).forEach(k=>localStorage.removeItem(k)); } catch {} };
   const openDay = i => { setSelDay(i); setView("day"); setXStudy(false); setXApol(false); setXDinner(false); setXGroup(false); setXScr(true); };
 
   const mkShare = useCallback((d, type) => {

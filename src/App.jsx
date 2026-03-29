@@ -296,6 +296,9 @@ export default function App() {
   useEffect(() => { save("sealed", sealed); }, [sealed]);
   useEffect(() => { save("choices", choices); }, [choices]);
 
+  // Silent analytics tracking — fires once per session
+  useEffect(() => { fetch("/api/track", { method: "POST" }).catch(() => {}); }, []);
+
   const todayIdx = () => {
     const diff = Math.floor((new Date() - new Date(2026,2,29)) / 864e5);
     return diff >= 0 && diff <= 7 ? diff : null;
